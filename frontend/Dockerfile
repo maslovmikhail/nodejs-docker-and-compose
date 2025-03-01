@@ -1,11 +1,13 @@
-FROM node:16-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
-COPY . .
+COPY . ./
 RUN npm run build
 
-FROM nginx:latest
+FROM nginx:alpine AS production
+WORKDIR /app
 COPY --from=builder /app/build /usr/share/nginx/html
-COPY ./nginx/conf.d/default.conf /etc/nginx/conf.d
-EXPOSE 80
+COPY nginx/conf.d/default.conf /etc/nginx/conf.d
+
+ENTRYPOINT [ "nginx", "-g", "daemon off;" ]
